@@ -1,11 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import ResultModal from "./ResultModal";
 
 const TimeChallenge = ({ title, targetTime }) => {
+  const timer = useRef();
+
+  let time;
+
   const [timerExpired, setTimerExpired] = useState(false);
   const [timerStarted, setTimerStarted] = useState(false);
 
   function handleStart() {
-    setTimeout(() => {
+    timer.current = setTimeout(() => {
       setTimerExpired(true);
     }, targetTime * 1000);
 
@@ -15,25 +20,30 @@ const TimeChallenge = ({ title, targetTime }) => {
   function handleStop() {
     // ? How do we get access to the startTimer Function in this function?
     // * and that's where a ref can help us.
+    clearTimeout(timer.current);
+    setTimerStarted(false);
+    setTimerExpired(false);
   }
 
   return (
-    <section className="challenge">
-      <h2>{title}</h2>
-      {timerExpired && <p>You Lost</p>}
-      <p className="challenge-time">
-        {targetTime} second{targetTime > 1 ? "s" : ""}
-      </p>
-      <p>
-        <button onClick={handleStart}>
-          {timerStarted ? "Stop" : "Start"} Challenge
-        </button>
-      </p>
-      <p className={timerStarted ? "active" : undefined}>
-        {" "}
-        {timerStarted ? "Time is running..." : "Timer InActive"}{" "}
-      </p>
-    </section>
+    <>
+      {timerExpired && <ResultModal targetTime={targetTime} result="Lost" />}
+      <section className="challenge">
+        <h2>{title}</h2>
+        <p className="challenge-time">
+          {targetTime} second{targetTime > 1 ? "s" : ""}
+        </p>
+        <p>
+          <button onClick={timerStarted ? handleStop : handleStart}>
+            {timerStarted ? "Stop" : "Start"} Challenge
+          </button>
+        </p>
+        <p className={timerStarted ? "active" : undefined}>
+          {" "}
+          {timerStarted ? "Time is running..." : "Timer InActive"}{" "}
+        </p>
+      </section>
+    </>
   );
 };
 
