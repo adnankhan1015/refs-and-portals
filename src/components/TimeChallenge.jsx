@@ -5,29 +5,38 @@ const TimeChallenge = ({ title, targetTime }) => {
   const timer = useRef();
   const dialog = useRef();
 
-  const [timerExpired, setTimerExpired] = useState(false);
-  const [timerStarted, setTimerStarted] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(targetTime * 1000);
+
+  const timeIsActive = timeRemaining > 0 && timeRemaining < targetTime * 1000;
+
+  if (timeRemaining <= 0) {
+    clearInterval(timer.current);
+    dialog.current.open();
+  }
 
   function handleStart() {
-    timer.current = setTimeout(() => {
-      setTimerExpired(true);
-      dialog.current.open();
-    }, targetTime * 1000);
+    timer.current = setInterval(() => {
+      setTimeRemaining((preTimeRemaining) => preTimeRemaining - 10);
+    }, 10);
+  }
 
-    setTimerStarted(true);
+  function handleReset() {
+    setTimeRemaining(targetTime * 1000);
   }
 
   function handleStop() {
-    // ? How do we get access to the startTimer Function in this function?
-    // * and that's where a ref can help us.
-    clearTimeout(timer.current);
-    setTimerStarted(false);
-    setTimerExpired(false);
+    clearInterval(timer.current);
+    dialog.current.open();
   }
 
   return (
     <>
-      <ResultModal ref={dialog} targetTime={targetTime} result="Lost" />
+      <ResultModal
+        ref={dialog}
+        targetTime={targetTime}
+        remainingTime={timeRemaining}
+        onReset={handleReset}
+      />
 
       <section className="challenge">
         <h2>{title}</h2>
@@ -35,13 +44,13 @@ const TimeChallenge = ({ title, targetTime }) => {
           {targetTime} second{targetTime > 1 ? "s" : ""}
         </p>
         <p>
-          <button onClick={timerStarted ? handleStop : handleStart}>
-            {timerStarted ? "Stop" : "Start"} Challenge
+          <button onClick={timeIsActive ? handleStop : handleStart}>
+            {timeIsActive ? "Stop" : "Start"} Challenge
           </button>
         </p>
-        <p className={timerStarted ? "active" : undefined}>
+        <p className={timeIsActive ? "active" : undefined}>
           {" "}
-          {timerStarted ? "Time is running..." : "Timer InActive"}{" "}
+          {timeIsActive ? "Time is running..." : "Timer InActive"}{" "}
         </p>
       </section>
     </>
